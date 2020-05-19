@@ -1,45 +1,34 @@
 #ifndef DIFF_H_INCLUDED
 #define DIFF_H_INCLUDED
 
-//####################//
+#include "../tree/tree.h"
 
-#include "tree.h"
+// ====================
+// DSL
+// being singletone, tree isn't needed as the parameter
 
-//####################//
-// DSL lang
+#define BRANCH(node, branch) tree->nodes[node].branches[branch]
+#define R(node) tree->nodes[node].branches[Right]
+#define L(node) tree->nodes[node].branches[Left]
+#define PARENT(node) tree->nodes[node].parent
 
-#ifndef DSL_H
-#define DSL_H
-
-#define R tree->nodes[node].branch[Right]
-#define L tree->nodes[node].branch[Left]
-#define RR tree->nodes[R].branch[Right]
-#define RL tree->nodes[R].branch[Left]
-#define LR tree->nodes[L].branch[Right]
-#define LL tree->nodes[L].branch[Left]
+#define ROOT tree->root
 
 #define TYPE(node) tree->nodes[node].data.type
 #define VALUE(node) tree->nodes[node].data.value
 
 #define DELETE(node) TreeDeleteNode(tree, node)
 
-#define CHANGE(node, typeNew, valueNew)                                                            \
-  dataNew.type  = typeNew;                                                                         \
-  dataNew.value = valueNew;                                                                        \
-  TreeChangeNode(tree, node, NULL, NULL, NULL, &dataNew)
+#define CHANGE(node, data_new) TreeChangeNode(tree, node, NULL, NULL, NULL, &data_new)
 
-#define INSERT(node, branch, typeNew, valueNew)                                                    \
-  dataNew.type  = typeNew;                                                                         \
-  dataNew.value = valueNew;                                                                        \
-  TreeInsertNode(tree, node, branch, &dataNew)
+#define INSERT(node, branch, data_new) TreeInsertNode(tree, node, branch, data_new)
 
 #define D(node) DiffNode(tree, node)
 
-#endif
+// ====================
+// DIFFERENTIATOR
 
-//####################//
-
-enum MathTypes {
+enum Types {
   Variable,
   Number,
   Operator,
@@ -68,69 +57,86 @@ enum Functions {
   Sqrt,
 };
 
-//####################//
+// ====================
+// PARSING
 
-struct _TreeMath* DiffReadExpression(const char* pathname);
-int               GetTier4(char** s, struct _TreeMath* tree, int node);
-int               GetGr(char** s, struct _TreeMath* tree, int node);
-int               GetTier3(char** s, struct _TreeMath* tree, int node, int branch);
-int               GetSumSub(char** s, struct _TreeMath* tree, int node, int branch);
-int               GetTier2(char** s, struct _TreeMath* tree, int node, int branch);
-int               GetMulDiv(char** s, struct _TreeMath* tree, int node, int branch);
-int               GetTier1(char** s, struct _TreeMath* tree, int node, int branch);
-int               GetPow(char** s, struct _TreeMath* tree, int node, int branch);
-int               GetTier0(char** s, struct _TreeMath* tree, int node, int branch);
-int               GetVar(char** s, struct _TreeMath* tree, int node, int branch);
-int               GetNum(char** s, struct _TreeMath* tree, int node, int branch);
-int               GetPar(char** s, struct _TreeMath* tree, int node, int branch);
-int               GetFunc(char** s, struct _TreeMath* tree, int node, int branch);
+Tree* DiffReadExpression(const char* pathname);
+// general grammar of the expression
+int GetTier4Expression(char** s, Tree* tree, int node);
+int GetGr(char** s, Tree* tree, int node);
+// sum, substraction, etc
+int GetTier3Expression(char** s, Tree* tree, int node, int branch);
+int GetSumSub(char** s, Tree* tree, int node, int branch);
+// multiplication, division, etc
+int GetTier2Expression(char** s, Tree* tree, int node, int branch);
+int GetMulDiv(char** s, Tree* tree, int node, int branch);
+// power, etc
+int GetTier1Expression(char** s, Tree* tree, int node, int branch);
+int GetPow(char** s, Tree* tree, int node, int branch);
+// unitary / elementary expressions
+int GetTier0Expression(char** s, Tree* tree, int node, int branch);
+int GetVar(char** s, Tree* tree, int node, int branch);
+int GetNum(char** s, Tree* tree, int node, int branch);
+int GetPar(char** s, Tree* tree, int node, int branch);
+int GetFunc(char** s, Tree* tree, int node, int branch);
 
-int DiffGetDerivative(struct _TreeMath* tree);
-int DiffNode(struct _TreeMath* tree, const int node);
-int DiffVariable(struct _TreeMath* tree, const int node);
-int DiffNumber(struct _TreeMath* tree, const int node);
-int DiffFunction(struct _TreeMath* tree, const int node);
-int DiffSin(struct _TreeMath* tree, const int node);
-int DiffCos(struct _TreeMath* tree, const int node);
-int DiffTan(struct _TreeMath* tree, const int node);
-int DiffCtan(struct _TreeMath* tree, const int node);
-int DiffAsin(struct _TreeMath* tree, const int node);
-int DiffAcos(struct _TreeMath* tree, const int node);
-int DiffAtan(struct _TreeMath* tree, const int node);
-int DiffActan(struct _TreeMath* tree, const int node);
-int DiffLog(struct _TreeMath* tree, const int node);
-int DiffLn(struct _TreeMath* tree, const int node);
-int DiffSqrt(struct _TreeMath* tree, const int node);
-int DiffOperator(struct _TreeMath* tree, const int node);
-int DiffMul(struct _TreeMath* tree, const int node);
-int DiffDiv(struct _TreeMath* tree, const int node);
-int DiffSumSub(struct _TreeMath* tree, const int node);
-int DiffPow(struct _TreeMath* tree, const int node);
+// ====================
+// DERIVATIVES
 
-int DiffSimplify(struct _TreeMath* tree);
-int _DiffSimplify(struct _TreeMath* tree, const int node, int* flag);
-int SimplifyOperator(struct _TreeMath* tree, const int node, int* flag);
-int SimplifyMul(struct _TreeMath* tree, const int node, int* flag);
-int SimplifyDiv(struct _TreeMath* tree, const int node, int* flag);
-int SimplifySum(struct _TreeMath* tree, const int node, int* flag);
-int SimplifySub(struct _TreeMath* tree, const int node, int* flag);
-int SimplifyFunction(struct _TreeMath* tree, const int node, int* flag);
-int SimplifySin(struct _TreeMath* tree, const int node, int* flag);
-int SimplifyCos(struct _TreeMath* tree, const int node, int* flag);
-int SimplifyTan(struct _TreeMath* tree, const int node, int* flag);
+int DiffGetDerivative(Tree* tree);
+int DiffNode(Tree* tree, const int node);
+int DiffVariable(Tree* tree, const int node);
+int DiffNumber(Tree* tree, const int node);
+int DiffFunction(Tree* tree, const int node);
+int DiffSin(Tree* tree, const int node);
+int DiffCos(Tree* tree, const int node);
+int DiffTan(Tree* tree, const int node);
+int DiffCtan(Tree* tree, const int node);
+int DiffAsin(Tree* tree, const int node);
+int DiffAcos(Tree* tree, const int node);
+int DiffAtan(Tree* tree, const int node);
+int DiffActan(Tree* tree, const int node);
+int DiffLog(Tree* tree, const int node);
+int DiffLn(Tree* tree, const int node);
+int DiffSqrt(Tree* tree, const int node);
+int DiffOperator(Tree* tree, const int node);
+int DiffMul(Tree* tree, const int node);
+int DiffDiv(Tree* tree, const int node);
+int DiffSumSub(Tree* tree, const int node);
+int DiffPow(Tree* tree, const int node);
 
-int DiffPrintTree(struct _TreeMath* tree);
-int _DiffPrintTree(int fd, struct _TreeMath* tree, int node);
-int PrintVariable(const int fd, struct _TreeMath* tree, const int node);
-int PrintNumber(const int fd, struct _TreeMath* tree, const int node);
-int PrintOperator(const int fd, struct _TreeMath* tree, const int node);
-int PrintSum(const int fd, struct _TreeMath* tree, const int node);
-int PrintSub(const int fd, struct _TreeMath* tree, const int node);
-int PrintMul(const int fd, struct _TreeMath* tree, const int node);
-int PrintDiv(const int fd, struct _TreeMath* tree, const int node);
-int PrintPow(const int fd, struct _TreeMath* tree, const int node);
-int PrintFunction(const int fd, struct _TreeMath* tree, const int node);
+// ====================
+// SIMPLIFICATION
 
-//####################//
+int DiffSimplify(Tree* tree);
+int _DiffSimplify(Tree* tree, const int node, int* flag);
+int SimplifyOperator(Tree* tree, const int node, int* flag);
+int SimplifyMul(Tree* tree, const int node, int* flag);
+int SimplifyDiv(Tree* tree, const int node, int* flag);
+int SimplifySum(Tree* tree, const int node, int* flag);
+int SimplifySub(Tree* tree, const int node, int* flag);
+int SimplifyFunction(Tree* tree, const int node, int* flag);
+int SimplifySin(Tree* tree, const int node, int* flag);
+int SimplifyCos(Tree* tree, const int node, int* flag);
+int SimplifyTan(Tree* tree, const int node, int* flag);
+
+// ====================
+// PDF
+
+void DiffInitPdf();
+void DiffClosePdf();
+void DiffPrintToPdf(const char* msg);
+void DiffCompilePdf();
+int  DiffPrintTree(Tree* tree);
+int  _DiffPrintTree(int fd, Tree* tree, int node);
+int  PrintVariable(const int fd, Tree* tree, const int node);
+int  PrintNumber(const int fd, Tree* tree, const int node);
+int  PrintOperator(const int fd, Tree* tree, const int node);
+int  PrintSum(const int fd, Tree* tree, const int node);
+int  PrintSub(const int fd, Tree* tree, const int node);
+int  PrintMul(const int fd, Tree* tree, const int node);
+int  PrintDiv(const int fd, Tree* tree, const int node);
+int  PrintPow(const int fd, Tree* tree, const int node);
+int  PrintFunction(const int fd, Tree* tree, const int node);
 
 #endif

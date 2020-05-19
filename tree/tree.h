@@ -1,9 +1,12 @@
-#ifndef TREE_H_INCLUDED
-#define TREE_H_INCLUDED
+#ifndef __TREE_H_INCLUDED__
+#define __TREE_H_INCLUDED__
 
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+
+// ====================
+// SECURITY
 
 #define SEC_ON
 
@@ -19,8 +22,7 @@
 #define TREE_VERIFY(tree)
 #endif
 
-//####################//
-
+#ifdef SEC_ON
 enum TreeErrs {
   OK,
   E_HASH_CORRUPTED,
@@ -30,6 +32,10 @@ enum TreeErrs {
   E_SIZE_INVALID,
   E_LOG_DEAD,
 };
+#endif
+
+// ====================
+// TREE
 
 enum Branches {
   Left,
@@ -55,14 +61,11 @@ typedef struct _Tree {
   int   root;
   int   free;
 
-  enum TreeErrs err;
-
 #ifdef SEC_ON
-  long hash;
+  enum TreeErrs err;
+  long          hash;
 #endif
 } Tree;
-
-//####################//
 
 Node* NodeAlloc();
 int NodeInit(Node* node, const int parent, const int branch_l, const int branch_r, const Data data);
@@ -71,14 +74,14 @@ void NodeFree(Node* node);
 Tree* TreeAlloc();
 int   TreeInit(Tree* tree);
 void  TreeFree(Tree* tree);
-int   TreeResize(Tree* tree, const int sizeNew);
+int   TreeResize(Tree* tree, const int size_new);
 int   TreeSort(Tree* tree);
 int   _TreeSort(Tree* tree, const int node, const int parent, const int branch, int* counter,
                 Node* buf);
 
 int TreeFind(Tree* tree, const int node, const Data data);
 
-int TreeInsertNode(Tree* tree, const int parent, const int branch, Data* data);
+int TreeInsertNode(Tree* tree, const int parent, const int branch, Data data);
 
 int TreeCountSubtree(Tree* tree, const int node);
 int _TreeCountSubtree(Tree* tree, const int node, int* counter);
@@ -89,8 +92,8 @@ int   _TreeCopySubtree(Tree* src, Node* dst, const int node, int* pos);
 int TreeDeleteNode(Tree* tree, const int node);
 int _TreeDeleteNode(Tree* tree, const int node);
 
-int TreeChangeNode(Tree* tree, const int node, int* parentNew, int* branch_lNew, int* branch_rNew,
-                   Data* dataNew);
+int TreeChangeNode(Tree* tree, const int node, int* parent_new, int* branch_l_new,
+                   int* branch_r_new, Data* data_new);
 
 int TreeGlueSubtree(Tree* tree, Node* subtree, int node, int branch, int nodesCount);
 int _TreeGlueSubtree(Tree* tree, Node* subtree, int* index, int nodesCount, int node, int branch);

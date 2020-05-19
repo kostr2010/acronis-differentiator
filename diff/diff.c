@@ -20,7 +20,7 @@ Tree* DiffReadExpression(const char* pathname) {
 
   Tree* tree = TreeAlloc();
 
-  assertm(TreeInit(tree) == 0, "[DiffReadExpression] unable to init tree");
+  TreeInit(tree);
 
   int fd = 0;
   if ((fd = open(pathname, O_RDONLY)) == -1) {
@@ -64,8 +64,8 @@ Tree* DiffReadExpression(const char* pathname) {
 
 // ====================
 // PARSING
-// from here on, I'll try to use as many abstract language when manipulating tree as possible, as
-// all needed interfase should be provided by DSL
+// from here on, I'll try to use as many abstract language (DSL) when manipulating tree as possible,
+// as all needed interfase should be provided by DSL and / or diff.h interface
 
 int GetTier4Expression(char** s, Tree* tree, int node) {
   GetSpace(s);
@@ -79,10 +79,9 @@ int GetTier4Expression(char** s, Tree* tree, int node) {
 
 int GetGr(char** s, Tree* tree, int node) {
   // FIXME: dirty hack
-  if (GetTier3Expression(s, tree, node, Left) == -1) {
+  if (GetTier3Expression(s, tree, node, Left) == -1)
     LOG_LVL_DIFF_FAILURE(
         "expression identified as empty line (can't read even tier 3 expression)!\n");
-  }
 
   GetSpace(s);
 
@@ -97,9 +96,8 @@ int GetGr(char** s, Tree* tree, int node) {
 int GetTier3Expression(char** s, Tree* tree, int node, int branch) {
   GetSpace(s);
 
-  if (GetSumSub(s, tree, node, branch) == -1) {
+  if (GetSumSub(s, tree, node, branch) == -1)
     return -1;
-  }
 
   return 0;
 }
@@ -121,17 +119,18 @@ int GetSumSub(char** s, Tree* tree, int node, int branch) {
 
     Node* cpy     = TreeCopySubtree(tree, node_);
     int   n_nodes = TreeCountSubtree(tree, node_);
+
     DELETE(L(node_));
     DELETE(R(node_));
 
     Data data_new = {Operator, sign};
-
     CHANGE(node_, data_new);
 
     if (TreeGlueSubtree(tree, cpy, node_, Left, n_nodes) == -1) {
       LOG_LVL_DIFF_ERROR("unable to glue subtree!\n");
       return -1;
     }
+
     free(cpy);
 
     GetSpace(s);
@@ -160,9 +159,8 @@ int GetSumSub(char** s, Tree* tree, int node, int branch) {
 int GetTier2Expression(char** s, Tree* tree, int node, int branch) {
   GetSpace(s);
 
-  if (GetMulDiv(s, tree, node, branch) == -1) {
+  if (GetMulDiv(s, tree, node, branch) == -1)
     return -1;
-  }
 
   return 0;
 }
@@ -184,11 +182,11 @@ int GetMulDiv(char** s, Tree* tree, int node, int branch) {
 
     Node* cpy     = TreeCopySubtree(tree, node_);
     int   n_nodes = TreeCountSubtree(tree, node_);
+
     DELETE(L(node_));
     DELETE(R(node_));
 
     Data data = {Operator, sign};
-
     CHANGE(node_, data);
 
     if (TreeGlueSubtree(tree, cpy, node_, Left, n_nodes) == -1) {
@@ -224,9 +222,8 @@ int GetMulDiv(char** s, Tree* tree, int node, int branch) {
 int GetTier1Expression(char** s, Tree* tree, int node, int branch) {
   GetSpace(s);
 
-  if (GetPow(s, tree, node, branch) == -1) {
+  if (GetPow(s, tree, node, branch) == -1)
     return -1;
-  }
 
   return 0;
 }
@@ -246,11 +243,11 @@ int GetPow(char** s, Tree* tree, int node, int branch) {
 
     Node* cpy     = TreeCopySubtree(tree, node_);
     int   n_nodes = TreeCountSubtree(tree, node_);
+
     DELETE(L(node_));
     DELETE(R(node_));
 
     Data data = {Operator, Pow};
-
     CHANGE(node_, data);
 
     if (TreeGlueSubtree(tree, cpy, node_, Left, n_nodes) == -1) {
@@ -465,37 +462,29 @@ int DiffGetDerivative(Tree* tree) {
 int DiffNode(Tree* tree, const int node) {
   switch (TYPE(node)) {
   case Variable:
-    if (DiffVariable(tree, node) == -1) {
+    if (DiffVariable(tree, node) == -1)
       return -1;
-    }
     break;
   case Number:
-    if (DiffNumber(tree, node) == -1) {
+    if (DiffNumber(tree, node) == -1)
       return -1;
-    }
     break;
   case Function:
-    if (DiffFunction(tree, node) == -1) {
+    if (DiffFunction(tree, node) == -1)
       return -1;
-    }
     break;
   case Operator:
-    if (DiffOperator(tree, node) == -1) {
+    if (DiffOperator(tree, node) == -1)
       return -1;
-    }
     break;
   default:
     LOG_LVL_DIFF_ERROR("invalid node type given! %d\n", TYPE(node));
     return -1;
-    break;
   }
-
-  return 0;
 }
 
 int DiffVariable(Tree* tree, const int node) {
   Data data_new = {Number, 1 * PRECISION};
-
   CHANGE(node, data_new);
 
   return 0;
@@ -503,7 +492,6 @@ int DiffVariable(Tree* tree, const int node) {
 
 int DiffNumber(Tree* tree, const int node) {
   Data data_new = {Number, 0};
-
   CHANGE(node, data_new);
 
   return 0;
@@ -517,8 +505,8 @@ int DiffFunction(Tree* tree, const int node) {
   Node* cpy_func = TreeCopySubtree(tree, node);
   int   n_func   = TreeCountSubtree(tree, node);
 
-  TreeDeleteNode(tree, L(node));
-  TreeDeleteNode(tree, R(node));
+  DELETE(L(node));
+  DELETE(R(node));
 
   // replacing function's node with multiplication of func and it's argument, freeing temporary
   // buffers
@@ -535,64 +523,52 @@ int DiffFunction(Tree* tree, const int node) {
   // cos(nx); cos(nx) -> -1 * sin(nx)
   switch (VALUE(L(node))) {
   case Sin:
-    if (DiffSin(tree, L(node)) == -1) {
+    if (DiffSin(tree, L(node)) == -1)
       return -1;
-    }
     break;
   case Cos:
-    if (DiffCos(tree, L(node)) == -1) {
+    if (DiffCos(tree, L(node)) == -1)
       return -1;
-    }
     break;
   case Tan:
-    if (DiffTan(tree, L(node)) == -1) {
+    if (DiffTan(tree, L(node)) == -1)
       return -1;
-    }
     break;
   case Ctan:
-    if (DiffCtan(tree, L(node)) == -1) {
+    if (DiffCtan(tree, L(node)) == -1)
       return -1;
-    }
     break;
   case Asin:
-    if (DiffAsin(tree, L(node)) == -1) {
+    if (DiffAsin(tree, L(node)) == -1)
       return -1;
-    }
     break;
   case Acos:
-    if (DiffAcos(tree, L(node)) == -1) {
+    if (DiffAcos(tree, L(node)) == -1)
       return -1;
-    }
     break;
   case Atan:
-    if (DiffAtan(tree, L(node)) == -1) {
+    if (DiffAtan(tree, L(node)) == -1)
       return -1;
-    }
     break;
   case Actan:
-    if (DiffActan(tree, L(node)) == -1) {
+    if (DiffActan(tree, L(node)) == -1)
       return -1;
-    }
     break;
   case Log:
-    if (DiffLog(tree, L(node)) == -1) {
+    if (DiffLog(tree, L(node)) == -1)
       return -1;
-    }
     break;
   case Ln:
-    if (DiffLn(tree, L(node)) == -1) {
+    if (DiffLn(tree, L(node)) == -1)
       return -1;
-    }
     break;
   case Sqrt:
-    if (DiffSqrt(tree, L(node)) == -1) {
+    if (DiffSqrt(tree, L(node)) == -1)
       return -1;
-    }
     break;
   default:
     LOG_LVL_DIFF_ERROR("invalid function code!\n");
     return -1;
-    break;
   }
 
   // getting argument's derivative
@@ -812,34 +788,28 @@ int DiffSqrt(Tree* tree, const int node) {
 int DiffOperator(Tree* tree, const int node) {
   switch (VALUE(node)) {
   case Mul:
-    if (DiffMul(tree, node) == -1) {
+    if (DiffMul(tree, node) == -1)
       return -1;
-    }
     break;
   case Div:
-    if (DiffDiv(tree, node) == -1) {
+    if (DiffDiv(tree, node) == -1)
       return -1;
-    }
     break;
   case Sum:
-    if (DiffSumSub(tree, node) == -1) {
+    if (DiffSumSub(tree, node) == -1)
       return -1;
-    }
     break;
   case Sub:
-    if (DiffSumSub(tree, node) == -1) {
+    if (DiffSumSub(tree, node) == -1)
       return -1;
-    }
     break;
   case Pow:
-    if (DiffPow(tree, node) == -1) {
+    if (DiffPow(tree, node) == -1)
       return -1;
-    }
     break;
   default:
     LOG_LVL_DIFF_ERROR("invalid operator code!\n");
     return -1;
-    break;
   }
 
   return 0;
@@ -853,6 +823,7 @@ int DiffMul(Tree* tree, const int node) {
 
   Data data_new = {Operator, Sum};
   CHANGE(node, data_new);
+
   DELETE(L(node));
   DELETE(R(node));
 
@@ -943,6 +914,7 @@ int DiffPow(Tree* tree, const int node) {
 
   Data data_new = {Operator, Mul};
   CHANGE(node, data_new);
+
   DELETE(L(node));
   DELETE(R(node));
 
@@ -994,17 +966,13 @@ int _DiffSimplify(Tree* tree, const int node, int* flag) {
 
     switch (TYPE(node)) {
     case Operator:
-      if (SimplifyOperator(tree, node, flag) == -1) {
+      if (SimplifyOperator(tree, node, flag) == -1)
         return -1;
-      }
       break;
     case Function:
-      if (SimplifyFunction(tree, node, flag) == -1) {
+      if (SimplifyFunction(tree, node, flag) == -1)
         return -1;
-      }
       break;
-    default:
-      return 0;
     }
   }
 
@@ -1014,24 +982,20 @@ int _DiffSimplify(Tree* tree, const int node, int* flag) {
 int SimplifyOperator(Tree* tree, const int node, int* flag) {
   switch (VALUE(node)) {
   case Mul:
-    if (SimplifyMul(tree, node, flag) == -1) {
+    if (SimplifyMul(tree, node, flag) == -1)
       return -1;
-    }
     break;
   case Div:
-    if (SimplifyDiv(tree, node, flag) == -1) {
+    if (SimplifyDiv(tree, node, flag) == -1)
       return -1;
-    }
     break;
   case Sum:
-    if (SimplifySum(tree, node, flag) == -1) {
+    if (SimplifySum(tree, node, flag) == -1)
       return -1;
-    }
     break;
   case Sub:
-    if (SimplifySub(tree, node, flag) == -1) {
+    if (SimplifySub(tree, node, flag) == -1)
       return -1;
-    }
     break;
   }
 

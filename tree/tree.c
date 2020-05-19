@@ -195,6 +195,7 @@ int _TreeSort(Tree* tree, const int node, const int parent, const int branches, 
 
   buf[this]        = tree->nodes[node];
   buf[this].parent = parent;
+
   if (parent != 0)
     buf[parent].branches[branches] = this;
 
@@ -639,21 +640,11 @@ int TreeGetNode(char** s, Tree* tree, const int parent, const int branch) {
   else
     (*s)++;
 
-  //   if (val.type == -1 || val.type == -1) {
-  //     // no child
-  //     if (**s != '#') {
-  //       return -1;
-  //     } else {
-  //       (*s)++;
-  //       return 0;
-  //     }
-  //   } else {
   node = TreeInsertNode(tree, parent, branch, val);
   if (node == -1) {
     LOG_LVL_TREE_ERROR("can't insert node\n");
     return -1;
   }
-  //   }
 
   GetSpace(s);
 
@@ -691,9 +682,8 @@ int TreeGetNode(char** s, Tree* tree, const int parent, const int branch) {
 }
 
 int GetSpace(char** s) {
-  while (isblank(**s) != 0) {
+  while (isblank(**s) != 0)
     (*s)++;
-  }
 
   return 0;
 }
@@ -701,9 +691,8 @@ int GetSpace(char** s) {
 int GetNumber(char** s) {
   int val = 0;
 
-  if (isdigit(**s) == 0) {
+  if (isdigit(**s) == 0)
     return -1;
-  }
 
   while (isdigit(**s)) {
     val = val * 10 + (**s - '0');
@@ -827,12 +816,8 @@ void TreeDump(Tree* tree) {
 long TreeGetHash(Tree* tree) {
   // TODO: real hashing
 
-  if (tree == NULL) {
-    printf("[TreeGetHash] nullptr given! returning -1\n");
-    return -1;
-  } else {
+  if (tree != NULL)
     return 100;
-  }
 
   return -1;
 }

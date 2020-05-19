@@ -102,7 +102,7 @@ extern int fd_diff;
   /*PRINT_TREE()*/                                                                                 \
   close(fd_tree);
 #else
-#define LOG_LVL_TREE_ROUTINE()
+#define LOG_LVL_TREE_ROUTINE(msg, ...)
 #endif
 
 #ifdef LOG_ON
@@ -113,7 +113,7 @@ extern int fd_diff;
   /*PRINT_TREE() */                                                                                \
   close(fd_tree);
 #else
-#define LOG_LVL_TREE_FAILURE()
+#define LOG_LVL_TREE_FAILURE(msg, ...)
 #endif
 
 #ifdef LOG_ON
@@ -123,7 +123,7 @@ extern int fd_diff;
   dprintf(fd_tree, msg, ##__VA_ARGS__);                                                            \
   close(fd_tree);
 #else
-#define LOG_LVL_TREE_ERROR()
+#define LOG_LVL_TREE_ERROR(msg, ...)
 #endif
 
 // ====================
@@ -145,7 +145,7 @@ extern int fd_diff;
   PRINT_TREE()                                                                                     \
   close(fd_diff);
 #else
-#define LOG_LVL_DIFF_ROUTINE()
+#define LOG_LVL_DIFF_ROUTINE(msg, ...)
 #endif
 
 #ifdef LOG_ON
@@ -156,7 +156,7 @@ extern int fd_diff;
   PRINT_TREE()                                                                                     \
   close(fd_diff);
 #else
-#define LOG_LVL_DIFF_FAILURE()
+#define LOG_LVL_DIFF_FAILURE(msg, ...)
 #endif
 
 #ifdef LOG_ON
@@ -167,7 +167,7 @@ extern int fd_diff;
   PRINT_TREE()                                                                                     \
   close(fd_diff);
 #else
-#define LOG_LVL_DIFF_ERROR()
+#define LOG_LVL_DIFF_ERROR(msg, ...)
 #endif
 
 #endif

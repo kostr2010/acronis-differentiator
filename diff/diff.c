@@ -196,6 +196,8 @@ int GetMulDiv(char** s, Tree* tree, int node, int branch) {
       return -1;
     }
 
+    free(cpy);
+
     GetSpace(s);
 
     if (GetTier1Expression(s, tree, node_, Right) == -1) {
@@ -255,6 +257,8 @@ int GetPow(char** s, Tree* tree, int node, int branch) {
       LOG_LVL_DIFF_ERROR("unable to glue subtree!\n");
       return -1;
     }
+
+    free(cpy);
 
     GetSpace(s);
 
@@ -440,18 +444,15 @@ int GetFunc(char** s, Tree* tree, int node, int branch) {
 // DERIVATIVES
 
 int DiffGetDerivative(Tree* tree) {
-  //   if (DiffSimplify(tree) == -1) {
-  //     LOG_LVL_DIFF_FAILURE("unable to simplify original expression\n");
-  //     return -1;
-  //   }
+  if (DiffSimplify(tree) == -1) {
+    LOG_LVL_DIFF_FAILURE("unable to simplify!\n");
+    return -1;
+  }
 
-  //   if (DiffNode(tree, tree->nodes[tree->root].branches[Left]) == -1) {
   if (D(L(ROOT)) == -1) {
     LOG_LVL_DIFF_ERROR("unable to differentiate given tree!\n");
     return -1;
   }
-
-  TreeDump(tree);
 
   if (DiffSimplify(tree) == -1) {
     LOG_LVL_DIFF_FAILURE("unable to simplify!\n");
@@ -987,8 +988,6 @@ int DiffSimplify(Tree* tree) {
 }
 
 int _DiffSimplify(Tree* tree, const int node, int* flag) {
-  printf("\n\n node %d type %d val %d\n\n", node, TYPE(node), VALUE(node));
-
   if (node != 0) {
     if (_DiffSimplify(tree, L(node), flag) == -1 || _DiffSimplify(tree, R(node), flag) == -1)
       return -1;
@@ -1163,7 +1162,7 @@ int SimplifyDiv(Tree* tree, const int node, int* flag) {
 
     *flag = 1;
   } else if (r_is_num && l_is_num) {
-    Data data_new = {Number, (VALUE(L(node)) / VALUE(R(node))) * PRECISION};
+    Data data_new = {Number, (int)(PRECISION * (float)VALUE(L(node)) / (float)VALUE(R(node)))};
     CHANGE(node, data_new);
 
     DELETE(L(node));
